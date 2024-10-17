@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.R
 import dev.kwasi.echoservercomplete.adapters.AttendeeAdapter
-import dev.kwasi.echoservercomplete.utils.Constants
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
 import dev.kwasi.echoservercomplete.ui.UIManager
@@ -36,7 +35,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface {
     private lateinit var passwordTextView: TextView
     private lateinit var uiManager: UIManager
 
-    private val attendees = mutableListOf<String>() // List to hold the names of connected devices
+    private val attendees = mutableListOf<WifiP2pDevice>() // List to hold connected WifiP2pDevice objects
     private val chatMessages = mutableListOf<Message>() // List to hold chat messages
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,8 +64,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface {
         attendeesRecyclerView.layoutManager = LinearLayoutManager(this)
 
         // Set the adapter with the list of attendees and a click listener for the button
-        val adapter = AttendeeAdapter(this, attendees) { attendeeName ->
-            askQuestion(attendeeName)  // Method to handle question asking
+        val adapter = AttendeeAdapter(this, attendees) { selectedDevice ->
+            connectToSelectedPeer(selectedDevice)  // Connect to the selected peer
         }
         attendeesRecyclerView.adapter = adapter
 
@@ -78,7 +77,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface {
             addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
         }
 
-        discoverPeers() // Discover peers
+        // Start peer discovery
+        discoverPeers()
 
         // Set up send button click listener
         sendButton.setOnClickListener {
@@ -121,10 +121,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface {
     override fun onPeerListUpdated(peers: Collection<WifiP2pDevice>) {
         // Clear and update attendees list with connected devices
         attendees.clear()
-        peers.forEach { attendee ->
-            attendees.add(attendee.deviceName)  // Add the device name to the attendees list
-        }
-
+        attendees.addAll(peers)  // Store WifiP2pDevice objects directly
         // Notify the adapter that the data has changed
         (attendeesRecyclerView.adapter as AttendeeAdapter).notifyDataSetChanged()
         Toast.makeText(this, "Peers Updated: ${attendees.size} devices found", Toast.LENGTH_SHORT).show()
@@ -147,18 +144,33 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface {
         Toast.makeText(this, "Device Status Changed: ${thisDevice.deviceName}", Toast.LENGTH_SHORT).show()
     }
 
+    // Discover nearby peers
+    private fun discoverPeers() {
+        wifiDirectManager.discoverPeers()
+    }
+
+    // Connect to the selected peer device
+    private fun connectToSelectedPeer(selectedDevice: WifiP2pDevice) {
+        wifiDirectManager.connectToPeer(selectedDevice) // Use the existing connectToPeer method
+    }
+
+    // This method will be called when a peer is successfully connected
+    override fun onPeerConnected() {
+        createWifiDirectGroup() // Call to create a Wi-Fi Direct group
+    }
+
+    // Create a Wi-Fi Direct group as the Group Owner (GO)
+    private fun createWifiDirectGroup() {
+        wifiDirectManager.createGroup()
+    }
+
     private fun askQuestion(attendeeName: String) {
         val question = chatInput.text.toString()
         if (question.isNotEmpty()) {
             // Send the question to the selected attendee
             Toast.makeText(this, "Sent to $attendeeName: $question", Toast.LENGTH_SHORT).show()
-            // Implement the logic to actually send the question over the network
         } else {
             Toast.makeText(this, "Please enter a question.", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun discoverPeers() {
-        wifiDirectManager.discoverPeers()  // Call the discover peers function
     }
 }

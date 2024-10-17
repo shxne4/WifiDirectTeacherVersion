@@ -87,17 +87,19 @@ class WifiDirectManager(
 
     @SuppressLint("MissingPermission")
     fun connectToPeer(peer: WifiP2pDevice) {
-        val config = WifiP2pConfig()
-        config.deviceAddress = peer.deviceAddress
-        manager.connect(channel, config, object : ActionListener {
+        val config = WifiP2pConfig().apply {
+            deviceAddress = peer.deviceAddress
+        }
+        manager.connect(channel, config, object : WifiP2pManager.ActionListener {
             override fun onSuccess() {
-                Log.e("WFDManager","Successfully attempted to connect to a peer '${peer.deviceName}'")
+                Log.e("WFDManager", "Successfully attempted to connect to a peer '${peer.deviceName}'")
+                // Notify the activity about the connection success
+                iFaceImpl.onPeerConnected()
             }
 
             override fun onFailure(reason: Int) {
-                Log.e("WFDManager","An error occurred while trying to connect to a peer '${peer.deviceName}'")
+                Log.e("WFDManager", "An error occurred while trying to connect to a peer '${peer.deviceName}'")
             }
-
         })
     }
 

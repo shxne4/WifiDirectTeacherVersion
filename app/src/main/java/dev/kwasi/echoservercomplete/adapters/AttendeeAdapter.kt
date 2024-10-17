@@ -8,11 +8,12 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import dev.kwasi.echoservercomplete.R
+import android.net.wifi.p2p.WifiP2pDevice
 
 class AttendeeAdapter(
     private val context: Context,
-    private val attendees: List<String>,
-    private val onAskQuestionClick: (String) -> Unit
+    private val attendees: List<WifiP2pDevice>,
+    private val onAskQuestionClick: (WifiP2pDevice) -> Unit  // Accept WifiP2pDevice
 ) : RecyclerView.Adapter<AttendeeAdapter.AttendeeViewHolder>() {
 
     class AttendeeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -27,7 +28,7 @@ class AttendeeAdapter(
 
     override fun onBindViewHolder(holder: AttendeeViewHolder, position: Int) {
         val attendee = attendees[position]
-        holder.attendeeName.text = attendee
+        holder.attendeeName.text = attendee.deviceName  // Display the device name
         holder.askQuestionButton.setOnClickListener {
             onAskQuestionClick(attendee) // Trigger the action when the button is clicked
         }
