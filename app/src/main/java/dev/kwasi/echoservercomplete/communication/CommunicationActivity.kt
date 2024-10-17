@@ -77,7 +77,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface {
             addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
         }
 
-        // Start peer discovery
+        // Automatically start discovering peers
         discoverPeers()
 
         // Set up send button click listener
@@ -161,7 +161,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface {
 
     // Create a Wi-Fi Direct group as the Group Owner (GO)
     private fun createWifiDirectGroup() {
-        wifiDirectManager.createGroup()
+        wifiDirectManager.createGroup() // Calls the method in WifiDirectManager
     }
 
     private fun askQuestion(attendeeName: String) {
