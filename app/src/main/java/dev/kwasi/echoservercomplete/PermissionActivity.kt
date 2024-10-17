@@ -13,9 +13,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import dev.kwasi.echoservercomplete.communication.CommunicationActivity
+import dev.kwasi.echoservercomplete.utils.Constants.LOCATION_PERMISSION_REQUEST_CODE
 
 class PermissionActivity : AppCompatActivity() {
-    /// The [requestCode] variable acts as an identifier for the app that's requesting the permissions.
     private val requestCode = 1234
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,22 +29,17 @@ class PermissionActivity : AppCompatActivity() {
             insets
         }
 
-        // If we do not have our permissions, we need to request them. Create an array of the permissions we want,
-        // then send a request to the android OS
-        if (!hasAllPermissions()){
+        if (!hasAllPermissions()) {
             var perm = arrayOf(
                 Manifest.permission.ACCESS_WIFI_STATE,
                 Manifest.permission.CHANGE_WIFI_STATE,
                 Manifest.permission.INTERNET,
                 Manifest.permission.ACCESS_FINE_LOCATION,
             )
-            if (SDK_INT >= 33){
-                // Android 13 (API 33) requires the NEARBY_WIFI_DEVICES permission
-                perm +=Manifest.permission.NEARBY_WIFI_DEVICES
+            if (SDK_INT >= 33) {
+                perm += Manifest.permission.NEARBY_WIFI_DEVICES
             }
-
             ActivityCompat.requestPermissions(this, perm, requestCode)
-
         } else {
             navigateToNextPage()
         }
@@ -51,33 +47,30 @@ class PermissionActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (hasAllPermissions()){
+        if (hasAllPermissions()) {
             navigateToNextPage()
         }
     }
 
-    private fun hasAllPermissions():Boolean{
+    private fun hasAllPermissions(): Boolean {
         var perm = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                 checkSelfPermission(Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED &&
                 checkSelfPermission(Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_GRANTED &&
                 checkSelfPermission(Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED
-        if (SDK_INT >= 33){
-            // If we're running on android SDK 33 or higher, we also need the NEARBY_WIFI_DEVICES permission
+        if (SDK_INT >= 33) {
             perm = perm && checkSelfPermission(Manifest.permission.NEARBY_WIFI_DEVICES) == PackageManager.PERMISSION_GRANTED
         }
         return perm
     }
 
-    /// This function is called by the OS itself after the user interacts with the permissions popups.
-    /// We need to iterate through each of the permissions we requested and make sure that ALL are granted.
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        when(requestCode){
+        when (requestCode) {
             this.requestCode -> {
-                if (hasAllPermissions()){
+                if (hasAllPermissions()) {
                     navigateToNextPage()
                 }
             }
@@ -87,12 +80,11 @@ class PermissionActivity : AppCompatActivity() {
         }
     }
 
-    private fun navigateToNextPage(){
-        val i = Intent(this,CommunicationActivity::class.java)
-        i.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
-        startActivity(i)
+    private fun navigateToNextPage() {
+        val intent = Intent(this, CommunicationActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+        startActivity(intent)
     }
-
 
     fun goToSettings(view: View) {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -100,5 +92,4 @@ class PermissionActivity : AppCompatActivity() {
         intent.setData(uri)
         startActivity(intent)
     }
-
 }
